@@ -1,0 +1,204 @@
+---
+import "../styles/ticker.css";
+
+const signs = [
+  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+  "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+];
+const types = [
+  ["schedule", "🗓️ Schedule"],
+  ["project", "🚀 Project"],
+  ["deadline", "⏰ Deadline"],
+  ["event", "🎉 Event"],
+  ["reminder", "🔔 Reminder"],
+  ["timer", "⏱️ Timer"],
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="A live ticker-tape dashboard for your schedule, weather, horoscope and news." />
+    <link rel="manifest" href="/ticker.webmanifest" />
+    <link rel="icon" href="/ticker-icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/ticker-icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Oswald:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>Daily Ticker</title>
+  </head>
+  <body>
+    <div class="board">
+      <!-- Masthead + 7-day weather -->
+      <header class="masthead">
+        <div class="brand">
+          <span class="brand-dot"></span>
+          <div>
+            <div class="brand-name">DAILY TICKER</div>
+            <div class="brand-sub" id="loc-name">Detroit, MI</div>
+          </div>
+        </div>
+        <div class="clock">
+          <div class="clock-time" id="clock-time">--:--</div>
+          <div class="clock-date" id="clock-date"></div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-primary" id="btn-add" title="Add item (N)">＋ Add</button>
+          <button class="btn" id="btn-manage" title="Manage items (M)">☰ Items</button>
+          <button class="btn icon" id="btn-settings" title="Settings">⚙</button>
+          <button class="btn icon" id="btn-full" title="Fullscreen (F)">⛶</button>
+        </div>
+      </header>
+
+      <section class="weather" aria-label="7-day forecast">
+        <div class="weather-row" id="weather-row">
+          {Array.from({ length: 7 }).map(() => <div class="wx-card skeleton" />)}
+        </div>
+      </section>
+
+      <!-- Horoscope -->
+      <section class="horoscope" aria-label="Daily horoscope">
+        <div class="horo-badge">
+          <span class="horo-glyph" id="horo-glyph">♑</span>
+          <span class="horo-sign" id="horo-sign">CAPRICORN</span>
+        </div>
+        <p class="horo-text" id="horo-text">Reading the stars…</p>
+      </section>
+
+      <!-- Tickers -->
+      <section class="tickers">
+        <div class="tape tape-mine" data-tape="mine">
+          <div class="tape-label">MY DAY</div>
+          <div class="tape-window"><div class="tape-track"></div></div>
+        </div>
+        <div class="tape tape-world" data-tape="world">
+          <div class="tape-label">WORLD</div>
+          <div class="tape-window"><div class="tape-track"><span class="tick muted">Loading world headlines…</span></div></div>
+        </div>
+        <div class="tape tape-national" data-tape="national">
+          <div class="tape-label">NATIONAL</div>
+          <div class="tape-window"><div class="tape-track"><span class="tick muted">Loading national headlines…</span></div></div>
+        </div>
+        <div class="tape tape-metro" data-tape="metro">
+          <div class="tape-label">METRO<br />DETROIT</div>
+          <div class="tape-window"><div class="tape-track"><span class="tick muted">Loading metro Detroit headlines…</span></div></div>
+        </div>
+      </section>
+
+      <!-- Today -->
+      <section class="today" aria-label="Today's important items">
+        <div class="today-main">
+          <h2 class="today-title">TODAY <span id="today-count"></span></h2>
+          <ul class="today-list" id="today-list"></ul>
+        </div>
+        <aside class="timers" aria-label="Timers">
+          <h3 class="timers-title">⏱️ TIMERS</h3>
+          <div id="timer-list" class="timer-list"></div>
+          <form class="quick-timer" id="quick-timer">
+            <input name="minutes" type="number" min="1" max="600" value="10" aria-label="Minutes" />
+            <span>min</span>
+            <button class="btn btn-small" type="submit">Start</button>
+          </form>
+        </aside>
+      </section>
+    </div>
+
+    <div class="toasts" id="toasts" aria-live="assertive"></div>
+
+    <!-- Add / edit item -->
+    <dialog id="dlg-item" class="dialog">
+      <form method="dialog" id="item-form" class="form">
+        <h2 id="item-form-title">Add item</h2>
+        <input type="hidden" name="id" />
+        <label>Type
+          <select name="type">
+            {types.map(([value, label]) => <option value={value}>{label}</option>)}
+          </select>
+        </label>
+        <label>Title <input name="title" required maxlength="120" placeholder="What's happening?" /></label>
+        <div class="row" data-for="dated">
+          <label>Date <input type="date" name="date" /></label>
+          <label>Time <input type="time" name="time" /></label>
+        </div>
+        <div class="row" data-for="dated">
+          <label>Repeat
+            <select name="repeat">
+              <option value="none">Doesn't repeat</option>
+              <option value="daily">Daily</option>
+              <option value="weekdays">Weekdays</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </label>
+          <label>Priority
+            <select name="priority">
+              <option value="normal">Normal</option>
+              <option value="high">High ★</option>
+              <option value="low">Low</option>
+            </select>
+          </label>
+        </div>
+        <label data-for="project">Progress <input type="range" name="progress" min="0" max="100" step="5" /></label>
+        <div class="row" data-for="timer">
+          <label>Hours <input type="number" name="hours" min="0" max="23" value="0" /></label>
+          <label>Minutes <input type="number" name="minutes" min="0" max="59" value="25" /></label>
+        </div>
+        <label>Notes <textarea name="notes" rows="2" maxlength="300"></textarea></label>
+        <div class="form-actions">
+          <button type="button" class="btn" data-close>Cancel</button>
+          <button type="submit" class="btn btn-primary" value="save">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Manage items -->
+    <dialog id="dlg-manage" class="dialog dialog-wide">
+      <div class="form">
+        <h2>Your items</h2>
+        <div class="filter-row" id="filter-row"></div>
+        <ul class="manage-list" id="manage-list"></ul>
+        <div class="form-actions">
+          <button type="button" class="btn" id="btn-clear-done">Clear completed</button>
+          <button type="button" class="btn btn-primary" data-close>Done</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Settings -->
+    <dialog id="dlg-settings" class="dialog">
+      <form method="dialog" id="settings-form" class="form">
+        <h2>Settings</h2>
+        <label>Weather location
+          <div class="row tight">
+            <input name="place" placeholder="City, e.g. Royal Oak" />
+            <button type="button" class="btn btn-small" id="btn-geo">Find</button>
+          </div>
+          <small id="geo-status"></small>
+        </label>
+        <label>Horoscope sign
+          <select name="sign">{signs.map((s) => <option value={s}>{s}</option>)}</select>
+        </label>
+        <label>Ticker speed <input type="range" name="speed" min="0.4" max="2.5" step="0.1" /></label>
+        <label class="check"><input type="checkbox" name="sound" /> Alert sounds</label>
+        <label class="check"><input type="checkbox" name="notify" /> Desktop notifications</label>
+        <div class="row">
+          <button type="button" class="btn btn-small" id="btn-export">Export items</button>
+          <label class="btn btn-small file-btn">Import items<input type="file" accept="application/json" id="file-import" hidden /></label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn" data-close>Cancel</button>
+          <button type="submit" class="btn btn-primary" value="save">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script>
+      import "../scripts/ticker/main.ts";
+    </script>
+  </body>
+</html>
