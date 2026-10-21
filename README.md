@@ -12,6 +12,22 @@ If you click "Deploy to Netlify" button, it will create a new repo for you that 
 
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/netlify-templates/astro-supabase-starter&fullConfiguration=true)
 
+## Daily Ticker (`/ticker`)
+
+A full-screen ticker-tape dashboard that runs at [`/ticker`](http://localhost:4321/ticker), and can be installed as an app from the browser.
+
+From top to bottom:
+
+- **7-day weather** for metro Detroit with color icons ([Open-Meteo](https://open-meteo.com), no API key). Change the city in ⚙ Settings.
+- **Daily horoscope** for Capricorn (the sign can be changed in Settings). If the live horoscope services can't be reached, it shows an offline reading for the day.
+- **MY DAY tape**: your schedule, projects, deadlines, events, reminders and timers, with live countdowns.
+- **World / National / Metro Detroit news tapes**, pulled from BBC, NPR, ABC, WDIV, WXYZ, Michigan Public and Google News through `/api/ticker/news` and refreshed every 10 minutes.
+- **TODAY**: big bold bullets for today's items, overdue and next-day deadlines, projects due this week, running timers and weather warnings. Click the circle to check an item off.
+
+Items are saved in the browser (`localStorage`). Use **Export/Import** in Settings to move them between devices. Reminders, events and timers play a chime and show a toast when they're due, and can also send desktop notifications if you allow them. Deadlines alert 15 minutes early.
+
+Shortcuts: `N` add, `M` manage items, `F` fullscreen (fullscreen also keeps the screen awake). Hover over a tape to pause it. Add `?compact` to the URL for a smaller widget layout.
+
 ## Astro Commands
 
 All commands are run from the root of the project, from a terminal:
